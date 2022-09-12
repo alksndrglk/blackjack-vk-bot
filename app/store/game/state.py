@@ -1,19 +1,21 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum, auto
+import typing
 
 
-class StateCollection(dict):
+class StateProcessor:
+    cls_handlers = {}
+
     @classmethod
-    def register_handler(self, name):
-        def decorate(f):
-            async def wrapper(*args, **kwargs):
-                self[name] = f
-                return await f(*args, **kwargs)
+    def register_handler(cls, command_type: GameState) -> typing.Callable:
+        def decorator(function: typing.Callable):
+            cls.cls_handlers[command_type] = function
+            return function
+        return decorator
 
-            return wrapper
-
-        return decorate
+    async def process(self, command_type: GameState, message: str):
+        await self.cls_handlers[command_type](message)
 
 
 class GameState(Enum):
@@ -25,5 +27,3 @@ class GameState(Enum):
     wait_for_bid = auto()
     action_selection = auto()
     continue_or_leave = auto()
-
-States = StateCollection()
