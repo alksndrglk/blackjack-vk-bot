@@ -1,0 +1,16 @@
+session:
+  key: S_XH3UWO9ow93Zxrh9jXMEWgQIwUWov5UudRJuPEtWs=
+admin:
+  email: $ADMIN_EMAIL
+  password: $ADMIN_PASS
+database:
+  host: $DB_HOST
+  port: $DB_PORT
+  user: $DB_USER
+  password: $DB_PASS
+  database:  $DB_NAME
+bot:
+  token:  $BOT_TOKEN
+  group_id: $GROUP_ID
+
+
