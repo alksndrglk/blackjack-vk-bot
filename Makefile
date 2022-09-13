@@ -25,16 +25,16 @@ clean: clean-pyc clean-test
 	rm -rf logs/
 
 test: clean
-	. .venv/bin/activate && py.test tests --cov=src --cov-report=term-missing --cov-fail-under 95
+	. .venv/bin/activate && py.test tests --cov=app --cov-report=term-missing --cov-fail-under 95
 
 mypy:
-	. .venv/bin/activate && mypy src
+	. venv/bin/activate && mypy app
 
 lint:
-	. .venv/bin/activate && pylint src -j 4 --reports=y
+	. venv/bin/activate && pylint app -j 4 --reports=y
 
 docs: FORCE
-	cd docs; . .venv/bin/activate && sphinx-apidoc -o ./source ./src
+	cd docs; . .venv/bin/activate && sphinx-apidoc -o ./source ./app
 	cd docs; . .venv/bin/activate && sphinx-build -b html ./source ./build
 FORCE:
 

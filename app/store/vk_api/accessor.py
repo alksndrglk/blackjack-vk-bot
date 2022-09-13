@@ -8,7 +8,7 @@ from aiohttp.client import ClientSession
 
 from app.base.base_accessor import BaseAccessor
 from .poller import Poller
-from .dataclasses import VkUser, Message
+from .dataclasses import Update, UpdateObject, VkUser, Message
 
 if typing.TYPE_CHECKING:
     from app.web.app import Application
