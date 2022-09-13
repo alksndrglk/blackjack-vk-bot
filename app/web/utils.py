@@ -4,7 +4,7 @@ from typing import Any, Optional
 from aiohttp.web import json_response as aiohttp_json_response
 from aiohttp.web_response import Response
 
-from app.store.database.gino import db
+from app.store.database import db
 
 
 def periodic(time):

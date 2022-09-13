@@ -26,3 +26,9 @@ class Message:
     peer_id: int
     text: str
     keyboard: dict["str", Union[bool, list]] = field(default_factory=dict)
+
+
+@dataclass
+class VkUser:
+    vk_id: int
+    user_name: str
