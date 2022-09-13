@@ -1,4 +1,5 @@
-from state import StateProcessor, GameState
+from state import StateProcessor
+from app.game.models import GameState
 
 
 @StateProcessor.register_handler(GameState.initial_trigger)
