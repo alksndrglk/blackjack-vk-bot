@@ -27,11 +27,11 @@ class UserModel(db):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True)
-    vk_id = db.Column(Integer, unique=True, nullable=False)
-    user_name = db.Column(String, nullable=False)
-    created_at = db.Column(DateTime, server_default="now()")
-    wins = db.Column(Integer, server_default=0)
-    loss = db.Column(Integer, server_default=0)
+    vk_id = Column(Integer, unique=True, nullable=False)
+    user_name = Column(String, nullable=False)
+    created_at = Column(DateTime, default="now()")
+    wins = Column(Integer, default=0)
+    loss = Column(Integer, default=0)
 
     def to_dict(self):
         return User(
@@ -68,19 +68,19 @@ class Player:
 class Player(db):
     __tablename__ = "player"
 
-    id = db.Column(Integer, primary_key=True)
-    user_id = db.Column(
+    id = Column(Integer, primary_key=True)
+    user_id = Column(
         Integer,
         ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False,
     )
-    game_id = db.Column(
+    game_id = Column(
         Integer, ForeignKey("game.id", ondelete="CASCADE"), nullable=False
     )
-    amount = db.Column(Integer, nullable=False, server_default=500)
-    hand = db.Column(JSONB, server_default="{}")
-    bid = db.Column(Integer, nullable=False, server_default=10)
-    status = db.Column(Enum(PlayerStatus))
+    amount = Column(Integer, nullable=False, default=500)
+    hand = Column(JSONB, default="{}")
+    bid = Column(Integer, nullable=False, default=10)
+    status = Column(Enum(PlayerStatus))
 
 
 class GameState(enum.Enum):
@@ -103,15 +103,15 @@ class Game:
     finished_at: Union[None, datetime] = None
 
 
-class GameModel(db.Model):
+class GameModel(db):
     __tablename__ = "game"
 
-    id = db.Column(Integer, primary_key=True)
-    chat_id = db.Column(Integer, nullable=False)
-    created_at = db.Column(DateTime, server_default="now()")
-    finished_at = db.Column(DateTime, server_default=None)
-    state = db.Column(Enum(GameState))
-    current_player = db.Column(Integer, ForeignKey("user.vk_id"))
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default="now()")
+    finished_at = Column(DateTime, default=None)
+    state = Column(Enum(GameState))
+    current_player = Column(Integer, ForeignKey("user.vk_id"))
 
     def to_dct(self) -> Game:
         return Game(
@@ -125,8 +125,9 @@ class GameModel(db.Model):
 class GameStats(db):
     __tablename__ = "game_stats"
 
-    game_id = db.Column(Integer, ForeignKey("game.id"))
-    wins = db.Column(Integer, server_default=0)
-    loss = db.Column(Integer, server_default=0)
-    draw = db.Column(Integer, server_default=0)
-    income = db.Column(Integer, server_default=0)
+    id = Column(Integer, primary_key=True)
+    game_id = Column(Integer, ForeignKey("game.id"))
+    wins = Column(Integer, default=0)
+    loss = Column(Integer, default=0)
+    draw = Column(Integer, default=0)
+    income = Column(Integer, default=0)
