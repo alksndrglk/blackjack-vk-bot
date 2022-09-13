@@ -74,9 +74,7 @@ class Player(db):
         ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False,
     )
-    game_id = Column(
-        Integer, ForeignKey("game.id", ondelete="CASCADE"), nullable=False
-    )
+    game_id = Column(Integer, ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
     amount = Column(Integer, nullable=False, default=500)
     hand = Column(JSONB, default="{}")
     bid = Column(Integer, nullable=False, default=10)
@@ -121,6 +119,7 @@ class GameModel(db):
             current_player=self.current_player,
             finished_at=self.finished_at,
         )
+
 
 class GameStats(db):
     __tablename__ = "game_stats"
