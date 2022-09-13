@@ -67,13 +67,11 @@ class TestAdminLoginView:
 
 class TestAdminCurrentView:
     async def test_unauthorized(self, cli):
-        current_response = await cli.get(
-            "/admin.current"
-        )
+        current_response = await cli.get("/admin.current")
         assert current_response.status == 401
         data = await current_response.json()
         assert data["status"] == "unauthorized"
-        
+
     async def test_succcess(self, cli, config):
         login_responce = await cli.post(
             "/admin.login",
@@ -84,8 +82,6 @@ class TestAdminCurrentView:
         )
         login_data = await login_responce.json()
 
-        current_response = await cli.get(
-            "/admin.current"
-        )
+        current_response = await cli.get("/admin.current")
         current_data = await current_response.json()
-        assert login_data['data'] == current_data['data']
+        assert login_data["data"] == current_data["data"]
