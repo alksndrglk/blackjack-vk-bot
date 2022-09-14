@@ -15,7 +15,6 @@ class BotManager:
 
     async def handle_updates(self, updates: list[Update]):
         for update in updates:
-            print(update)
             await self.app.store.vk_api.send_message(
                 Message(
                     peer_id=update.object.peer_id,
