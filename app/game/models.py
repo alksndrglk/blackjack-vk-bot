@@ -1,8 +1,10 @@
+from collections import defaultdict
 import enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Union
+from typing import List, Optional, Union
 from app.store.database.sqlalchemy_base import db
+from sqlalchemy.orm import relationship
 from sqlalchemy import (
     Column,
     Integer,
@@ -65,7 +67,7 @@ class Player:
     status: str
 
 
-class Player(db):
+class PlayerModel(db):
     __tablename__ = "player"
 
     id = Column(Integer, primary_key=True)
@@ -79,6 +81,17 @@ class Player(db):
     hand = Column(JSONB, default="{}")
     bid = Column(Integer, nullable=False, default=10)
     status = Column(Enum(PlayerStatus))
+
+    def to_dct(self) -> Player:
+        return Player(
+            id=self.id,
+            user_id=self.user_id,
+            game_id=self.game_id,
+            amount=self.amount,
+            hand=self.hand,
+            bid=self.bid,
+            status=self.status,
+        )
 
 
 class GameState(enum.Enum):
@@ -99,6 +112,7 @@ class Game:
     state: dict
     current_player: int
     finished_at: Union[None, datetime] = None
+    players: List[Player] = field(default_factory=list)
 
 
 class GameModel(db):
@@ -110,6 +124,7 @@ class GameModel(db):
     finished_at = Column(DateTime, default=None)
     state = Column(Enum(GameState))
     current_player = Column(Integer, ForeignKey("user.vk_id"))
+    players = relationship("PlayerModel")
 
     def to_dct(self) -> Game:
         return Game(
@@ -118,6 +133,7 @@ class GameModel(db):
             state=self.state,
             current_player=self.current_player,
             finished_at=self.finished_at,
+            players=[pl.to_dct() for pl in self.players],
         )
 
 
