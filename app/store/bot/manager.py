@@ -1,3 +1,4 @@
+from cgitb import handler
 import typing
 from logging import getLogger
 
@@ -15,9 +16,15 @@ class BotManager:
 
     async def handle_updates(self, updates: list[Update]):
         for update in updates:
-            await self.app.store.vk_api.send_message(
+            try:
+                handler_n = int(update.object.body)
+            except:
+                handler_n = 1
+            await self.app.store.state.process(
+                handler_n,
                 Message(
                     peer_id=update.object.peer_id,
-                    text="Привет!",
-                )
+                    text=f"handler{handler_n}",
+                ),
+                self.app.store.vk_api.send_message,
             )
