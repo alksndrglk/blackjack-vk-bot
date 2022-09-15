@@ -27,10 +27,10 @@ class BotConfig:
 
 @dataclass
 class DatabaseConfig:
-    host: str = "localhost"
-    port: int = 5432
     user: str = "postgres"
     password: str = "postgres"
+    host: str = "localhost"
+    port: int = 5432
     database: str = "project"
 
 
