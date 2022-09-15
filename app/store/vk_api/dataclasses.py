@@ -1,4 +1,4 @@
-from collections import defaultdict
+from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, Union
 
@@ -32,3 +32,15 @@ class Message:
 class VkUser:
     vk_id: int
     user_name: str
+
+    @classmethod
+    def from_profile(cls, profile: dict[str, Union[str, int]]) -> VkUser:
+        return cls(
+            vk_id=profile.get("id"),
+            user_name=" ".join(
+                [
+                    profile.get("first_name"),
+                    profile.get("last_name"),
+                ]
+            ),
+        )
