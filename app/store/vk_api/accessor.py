@@ -114,7 +114,6 @@ class VkApiAccessor(BaseAccessor):
                         )
                     )
                 return updates
-            # await self.app.store.bots_manager.handle_updates(updates)
 
     async def get_conversation_members(self, peer_id) -> Optional[List[VkUser]]:
         async with self.session.get(
@@ -130,21 +129,12 @@ class VkApiAccessor(BaseAccessor):
         ) as resp:
             if resp.status == 200:
                 data = await resp.json()
-                users = []
-                if not data.get("error", False):
-                    for profile in data["response"].get("profiles"):
-                        users.append(
-                            VkUser(
-                                vk_id=profile.get("id"),
-                                user_name=" ".join(
-                                    [
-                                        profile.get("first_name"),
-                                        profile.get("last_name"),
-                                    ]
-                                ),
-                            )
-                        )
-                return users
+                if data.get("error"):
+                    return []
+                return [
+                    VkUser.from_profile(profile)
+                    for profile in data["response"].get("profiles")
+                ]
 
     async def send_message(self, message: Message) -> None:
         query = self._build_query(

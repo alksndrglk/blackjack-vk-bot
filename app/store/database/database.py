@@ -22,7 +22,9 @@ class Database:
     async def connect(self, *_: list, **__: dict) -> None:
         self._db = db
         self._engine = create_async_engine(
-            url="postgresql+asyncpg://{}:{}@{}:{}/{}".format(*asdict(self.app.config.database).values()),
+            url="postgresql+asyncpg://{}:{}@{}:{}/{}".format(
+                *asdict(self.app.config.database).values()
+            ),
             echo=True,
             future=True,
         )
