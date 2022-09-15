@@ -1,12 +1,10 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from enum import Enum, auto
 import typing
 from app.game.models import GameState
 
 
 class StateProcessor:
-    cls_handlers = {}
+    cls_handlers: dict[GameState, typing.Callable] = {}
 
     @classmethod
     def register_handler(cls, command_type: GameState) -> typing.Callable:

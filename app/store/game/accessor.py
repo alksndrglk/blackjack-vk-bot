@@ -1,13 +1,14 @@
 from ctypes import Union
+from typing import Optional
 from app.base.base_accessor import BaseAccessor
-from app.game.models import GameModel, PlayerModel, UserModel, User
+from app.game.models import Game, GameModel, PlayerModel, UserModel, User
 from app.store.vk_api.dataclasses import VkUser
 from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 
 
 class BlackJackAccessor(BaseAccessor):
-    async def get_game(self, chat_id: int):
+    async def get_game(self, chat_id: int) -> Optional[Game]:
         async with self.app.database.session() as session:
             result = await session.execute(
                 select(GameModel)

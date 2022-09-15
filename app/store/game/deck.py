@@ -16,7 +16,7 @@ class Card:
     value: int
 
 
-def create_deck():
+def create_deck() -> list[Card]:
     deck = [Card(rank=r, suite=s, value=values[r]) for r, s in product(rank, suites)]
     shuffle(deck)
     return deck
