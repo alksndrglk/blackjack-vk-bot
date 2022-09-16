@@ -8,7 +8,7 @@ from aiohttp.client import ClientSession
 
 from app.base.base_accessor import BaseAccessor
 from .poller import Poller
-from .dataclasses import Update, UpdateObject, VkUser, Message
+from .dataclasses import Update, VkUser, Message
 
 if typing.TYPE_CHECKING:
     from app.web.app import Application
@@ -68,7 +68,7 @@ class VkApiAccessor(BaseAccessor):
                 self.ts = data["ts"]
                 self.logger.info(self.server)
 
-    async def poll(self):
+    async def poll(self) -> Optional[list[Update]]:
         async with self.session.get(
             self._build_query(
                 host=self.server,
@@ -86,36 +86,9 @@ class VkApiAccessor(BaseAccessor):
                 self.logger.info(data)
                 self.ts = data["ts"]
                 raw_updates = data.get("updates", [])
-                updates = []
-                for update in raw_updates:
-                    peer_id = update["object"].get("peer_id", None)
-                    user_id = update["object"].get("user_id", None)
-                    _type = update["type"]
-                    updates.append(
-                        Update(
-                            type=_type,
-                            object=UpdateObject(
-                                id=update["object"].get("message", {}).get("id"),
-                                peer_id=peer_id
-                                if peer_id
-                                else update["object"].get("message", {}).get("peer_id"),
-                                user_id=user_id
-                                if user_id
-                                else update["object"].get("message", {}).get("from_id"),
-                                body=update["object"].get("message", {}).get("text"),
-                                action=update["object"]
-                                .get("message", {})
-                                .get("action", {}),
-                                payload=update["object"].get("payload", {}),
-                                obj=update["object"]
-                                if _type == "message_event"
-                                else {},
-                            ),
-                        )
-                    )
-                return updates
+                return [Update.from_dict(upd) for upd in raw_updates]
 
-    async def get_conversation_members(self, peer_id) -> Optional[List[VkUser]]:
+    async def get_conversation_members(self, peer_id) -> Optional[list[VkUser]]:
         async with self.session.get(
             self._build_query(
                 API_PATH,
