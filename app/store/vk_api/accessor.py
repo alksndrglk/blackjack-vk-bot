@@ -1,8 +1,8 @@
-from ctypes import Union
 import random
 import json
 import typing
 from typing import Optional
+
 
 from aiohttp import TCPConnector
 from aiohttp.client import ClientSession

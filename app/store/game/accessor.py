@@ -1,4 +1,3 @@
-from ctypes import Union
 from dataclasses import asdict
 from datetime import datetime
 from typing import Optional

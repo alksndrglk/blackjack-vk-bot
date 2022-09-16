@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional, Union
 from app.store.database.sqlalchemy_base import db
 from sqlalchemy.sql import func
+
 from sqlalchemy.orm import relationship
 from sqlalchemy import (
     Column,
@@ -25,7 +26,6 @@ class User:
     created_at: datetime
     wins: int
     loss: int
-
 
 
 class UserModel(db):

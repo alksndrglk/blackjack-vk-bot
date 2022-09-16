@@ -1,4 +1,3 @@
-from math import gamma
 from app.store import Store
 from app.store.game.accessor import UserRegistrationFailed
 from app.store.vk_api.dataclasses import Message, Payload, Update
