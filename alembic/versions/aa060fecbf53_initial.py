@@ -1,8 +1,8 @@
-"""Initial revision
+"""Initial
 
-Revision ID: 43619dcacbc8
+Revision ID: aa060fecbf53
 Revises: 
-Create Date: 2022-09-13 13:43:20.501346
+Create Date: 2022-09-16 14:33:23.039149
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '43619dcacbc8'
+revision = 'aa060fecbf53'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,7 +25,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
-    op.create_table('user',
+    op.create_table('bljc_user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('vk_id', sa.Integer(), nullable=False),
     sa.Column('user_name', sa.String(), nullable=False),
@@ -42,7 +42,7 @@ def upgrade():
     sa.Column('finished_at', sa.DateTime(), nullable=True),
     sa.Column('state', sa.Enum('initial_trigger', 'start_trigger', 'menu_selection', 'number_of_players', 'player_accession', 'wait_for_bid', 'action_selection', 'continue_or_leave', name='gamestate'), nullable=True),
     sa.Column('current_player', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['current_player'], ['user.vk_id'], ),
+    sa.ForeignKeyConstraint(['current_player'], ['bljc_user.vk_id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('game_stats',
@@ -64,7 +64,7 @@ def upgrade():
     sa.Column('bid', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('BETS', 'HIT', 'WIN', 'BLACKJACK', 'WAITING', 'LOSED', 'DRAW', 'QUITED', name='playerstatus'), nullable=True),
     sa.ForeignKeyConstraint(['game_id'], ['game.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['bljc_user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
@@ -75,6 +75,6 @@ def downgrade():
     op.drop_table('player')
     op.drop_table('game_stats')
     op.drop_table('game')
-    op.drop_table('user')
+    op.drop_table('bljc_user')
     op.drop_table('admins')
     # ### end Alembic commands ###

@@ -51,7 +51,7 @@ class UpdateEventObject:
     def from_dict(cls, data: dict) -> Action:
         return cls(
             peer_id=data.get("peer_id"),
-            user_id=data.get("from_id"),
+            user_id=data.get("user_id"),
             event_id=data.get("event_id"),
             payload=Payload.from_dict(data.get("payload", {})),
         )

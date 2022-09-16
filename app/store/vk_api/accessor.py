@@ -1,14 +1,15 @@
+from ctypes import Union
 import random
 import json
 import typing
-from typing import Optional, List
+from typing import Optional
 
 from aiohttp import TCPConnector
 from aiohttp.client import ClientSession
 
 from app.base.base_accessor import BaseAccessor
 from .poller import Poller
-from .dataclasses import Update, VkUser, Message
+from .dataclasses import Update, UpdateEventObject, VkUser, Message
 
 if typing.TYPE_CHECKING:
     from app.web.app import Application
@@ -125,16 +126,16 @@ class VkApiAccessor(BaseAccessor):
         )
         async with self.session.get(query) as resp:
             data = await resp.json()
-            self.logger.info(data)
+            # self.logger.info(data)
 
-    async def send_answer(self, obj, text) -> None:
+    async def send_answer(self, obj: UpdateEventObject, text) -> None:
         query = self._build_query(
             API_PATH,
             "messages.sendMessageEventAnswer",
             params={
-                "event_id": obj["event_id"],
-                "user_id": obj["user_id"],
-                "peer_id": obj["peer_id"],
+                "event_id": obj.event_id,
+                "user_id": obj.user_id,
+                "peer_id": obj.peer_id,
                 "access_token": self.app.config.bot.token,
                 "event_data": json.dumps(
                     {
@@ -146,4 +147,4 @@ class VkApiAccessor(BaseAccessor):
         )
         async with self.session.get(query) as resp:
             data = await resp.json()
-            self.logger.info(data)
+            # self.logger.info(data)
