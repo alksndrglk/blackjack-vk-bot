@@ -6,7 +6,7 @@ from app.store.bot.dataclassess import Message
 
 
 class StateProcessor:
-    handlers = {}
+    cls_handlers: dict[GameState, typing.Callable] = {}
 
     @classmethod
     def register_handler(cls, command_type: GameState) -> typing.Callable:

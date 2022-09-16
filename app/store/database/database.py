@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Optional, TYPE_CHECKING
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import declarative_base
@@ -21,16 +22,15 @@ class Database:
     async def connect(self, *_: list, **__: dict) -> None:
         self._db = db
         self._engine = create_async_engine(
-            url=f"postgresql+asyncpg://{self.app.config.database.user}:{self.app.config.database.password}@{self.app.config.database.host}:{self.app.config.database.port}/{self.app.config.database.database}",
+            url="postgresql+asyncpg://{}:{}@{}:{}/{}".format(
+                *asdict(self.app.config.database).values()
+            ),
             echo=True,
             future=True,
         )
         self.session = sessionmaker(
             self._engine, expire_on_commit=False, class_=AsyncSession
         )
-
-        # async with self._engine.begin() as conn:
-        #     await conn.run_sync(self._db.metadata.drop_all())
 
     async def disconnect(self, *_: list, **__: dict) -> None:
         if self._engine:
