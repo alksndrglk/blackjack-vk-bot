@@ -1,12 +1,12 @@
 from __future__ import annotations
 import typing
-from app.game.models import GameState
+from app.game.models import Game, GameState
 from app.store import Store
-from app.store.bot.dataclassess import Message
+from app.store.vk_api.dataclasses import Update
 
 
 class StateProcessor:
-    cls_handlers: dict[GameState, typing.Callable] = {}
+    handlers: dict[GameState, typing.Callable] = {}
 
     @classmethod
     def register_handler(cls, command_type: GameState) -> typing.Callable:
@@ -16,5 +16,14 @@ class StateProcessor:
 
         return decorator
 
-    async def process(self, command_type: GameState, message: Message, func):
-        await self.handlers[command_type](message, func)
+    async def process(self, store: Store, game: Game, update: Update):
+        command_type = self.get_state(game, update.type_)
+        await self.handlers[command_type](store, game, update)
+
+    def get_state(self, game: Game, update_type: str) -> int:
+        if game:
+            return game.state.value
+        return {
+            "message_new": GameState.initial_trigger.value,
+            "message_event": GameState.start_trigger.value,
+        }.get(update_type)

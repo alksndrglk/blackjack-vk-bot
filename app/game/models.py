@@ -2,8 +2,10 @@ from collections import defaultdict
 import enum
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Optional, Union
 from app.store.database.sqlalchemy_base import db
+from sqlalchemy.sql import func
+
 from sqlalchemy.orm import relationship
 from sqlalchemy import (
     Column,
@@ -21,21 +23,22 @@ class User:
     id: int
     vk_id: int
     user_name: str
+    created_at: datetime
     wins: int
     loss: int
 
 
 class UserModel(db):
-    __tablename__ = "user"
+    __tablename__ = "bljc_user"
 
     id = Column(Integer, primary_key=True)
     vk_id = Column(Integer, unique=True, nullable=False)
     user_name = Column(String, nullable=False)
-    created_at = Column(DateTime, default="now()")
+    created_at = Column(DateTime, default=func.now())
     wins = Column(Integer, default=0)
     loss = Column(Integer, default=0)
 
-    def to_dict(self):
+    def to_dct(self):
         return User(
             id=self.id,
             vk_id=self.vk_id,
@@ -73,7 +76,7 @@ class PlayerModel(db):
     id = Column(Integer, primary_key=True)
     user_id = Column(
         Integer,
-        ForeignKey("user.id", ondelete="CASCADE"),
+        ForeignKey("bljc_user.id", ondelete="CASCADE"),
         nullable=False,
     )
     game_id = Column(Integer, ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
@@ -109,10 +112,10 @@ class GameState(enum.Enum):
 class Game:
     id: Optional[int]
     chat_id: int
-    state: dict
+    state: int
     current_player: int
     finished_at: Union[None, datetime] = None
-    players: List[Player] = field(default_factory=list)
+    players: list[Player] = field(default_factory=list)
 
 
 class GameModel(db):
@@ -120,10 +123,10 @@ class GameModel(db):
 
     id = Column(Integer, primary_key=True)
     chat_id = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default="now()")
+    created_at = Column(DateTime, default=func.now())
     finished_at = Column(DateTime, default=None)
     state = Column(Enum(GameState))
-    current_player = Column(Integer, ForeignKey("user.vk_id"))
+    current_player = Column(Integer, ForeignKey("bljc_user.vk_id"))
     players = relationship("PlayerModel")
 
     def to_dct(self) -> Game:

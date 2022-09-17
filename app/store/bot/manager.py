@@ -1,4 +1,5 @@
-from cgitb import handler
+
+import asyncio
 import typing
 from logging import getLogger
 
@@ -15,16 +16,18 @@ class BotManager:
         self.logger = getLogger("handler")
 
     async def handle_updates(self, updates: list[Update]):
-        for update in updates:
-            try:
-                handler_n = int(update.object.body)
-            except:
-                handler_n = 1
-            await self.app.store.state.process(
-                handler_n,
-                Message(
-                    peer_id=update.object.peer_id,
-                    text=f"handler{handler_n}",
-                ),
-                self.app.store.vk_api.send_message,
+        # set из чатов в апдейтах
+        # взять все игры через gather
+        # запустить все процессы через gather
+        chats = {upd.object.peer_id: upd for upd in updates}.keys()
+        games = await asyncio.gather(
+            *[self.app.store.game.get_game(id) for id in chats]
+        )
+        ch_ga = dict(zip(chats, games))
+        tasks = [
+            self.app.store.state.process(
+                self.app.store, ch_ga[update.object.peer_id], update
             )
+            for update in updates
+        ]
+        await asyncio.gather(*tasks)

@@ -69,7 +69,7 @@ BID = {
                 },
                 "color": "positive",
             },
-        ]
+        ],
     ],
 }
 
@@ -103,7 +103,7 @@ DECISION_MAKING = {
                 },
                 "color": "primary",
             },
-        ]
+        ],
     ],
 }
 
