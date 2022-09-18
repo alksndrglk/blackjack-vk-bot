@@ -95,16 +95,26 @@ def get_card(value: int, game_id: int, reciever: Union[Game, Player]):
 
 def handle_stand(player: Player, game: Game):
     player.status = PlayerStatus.STAND
+    return f"{player.user.user_name} не берет карты"
 
 
 def handle_double(player: Player, game: Game):
-    player.status = PlayerStatus.HIT
-    player.bid *= 2
-    handle_hit(player, game)
+    if player.status != PlayerStatus.STAND:
+        player.status = PlayerStatus.HIT
+        msg = handle_hit(player, game)
+        if player.bid * 2 <= player.amount:
+            player.bid *= 2
+            return f"{msg} и делает удвоение ставки"
+        return f"{msg}, слишком мало денег для удвоения"
 
 
 def handle_hit(player: Player, game: Game):
-    get_card(1, game.id, player)
+    if player.status != PlayerStatus.STAND:
+        player.status = PlayerStatus.HIT
+        get_card(1, game.id, player)
+        if player.hand["value"] >= 21:
+            player.status = PlayerStatus.STAND
+        return f"{player.user.user_name} берет еще карту"
 
 
 def handle_dealer_hit(game: Game):

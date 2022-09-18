@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections import defaultdict
+from email.policy import default
 import enum
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -16,6 +17,7 @@ from sqlalchemy import (
     Enum,
     DateTime,
     ForeignKey,
+    UniqueConstraint
 )
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -72,7 +74,7 @@ class Player:
     hand: dict
     bid: int
     status: str
-    user: User
+    user: Optional[User] = None
 
     def show_hand(self):
         return f"{self.user.user_name} {self.hand['hand']} {self.hand['value']}"
@@ -84,7 +86,7 @@ class PlayerModel(db):
     id = Column(Integer, primary_key=True)
     user_id = Column(
         Integer,
-        ForeignKey("bljc_user.id", ondelete="CASCADE"),
+        ForeignKey("bljc_user.vk_id", ondelete="CASCADE"),
         nullable=False,
     )
     game_id = Column(Integer, ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
@@ -93,6 +95,7 @@ class PlayerModel(db):
     bid = Column(Integer, nullable=False, default=10)
     status = Column(Enum(PlayerStatus))
     user = relationship("UserModel")
+    __table_args__ = (UniqueConstraint("user_id", "game_id", name="us_ga_id"),)
 
     def to_dct(self) -> Player:
         return Player(
@@ -124,6 +127,7 @@ class Game:
     chat_id: int
     state: int
     current_player: int
+    players_num: int
     hand: dict
     stats: GameStats
     finished_at: Union[None, datetime] = None
@@ -148,6 +152,7 @@ class GameModel(db):
     state = Column(Enum(GameState))
     hand = Column(JSONB, default="{}")
     current_player = Column(Integer, ForeignKey("bljc_user.vk_id"))
+    players_num = Column(Integer, default=1)
     players = relationship("PlayerModel")
     stats = relationship("GameStatsModel")
 
@@ -157,6 +162,7 @@ class GameModel(db):
             chat_id=self.chat_id,
             state=self.state,
             current_player=self.current_player,
+            players_num=self.players_num,
             finished_at=self.finished_at,
             hand=json.loads(self.hand),
             players=[pl.to_dct() for pl in self.players],

@@ -87,6 +87,7 @@ class VkApiAccessor(BaseAccessor):
                 self.logger.info(data)
                 self.ts = data["ts"]
                 raw_updates = data.get("updates", [])
+                print(raw_updates)
                 return [Update.from_dict(upd) for upd in raw_updates]
 
     async def get_conversation_members(self, peer_id) -> Optional[list[VkUser]]:

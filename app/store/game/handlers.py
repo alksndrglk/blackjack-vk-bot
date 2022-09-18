@@ -7,15 +7,15 @@ from .gameplay import (
     handle_hit,
     handle_double,
     handle_check_results,
+    inform_players,
 )
 from app.store import Store
-from app.store.game.accessor import UserRegistrationFailed
 from app.store.vk_api.dataclasses import Message, Payload, Update
 from .state import StateProcessor
-from app.game.models import Game, GameState, PlayerStatus
-from .keyboards import GREETING, BID, DECISION_MAKING, END
+from app.game.models import Game, GameState, Player, PlayerStatus
+from .keyboards import GREETING, BID, DECISION_MAKING, END, NUMBER_PLAYERS, REGISTER_PLAYER
 from .const import (
-    GREETING_MAESSAGE,
+    GREETING_MESSAGE,
     PLAYER_HAND,
     PLAYER_BID,
     BYE_MESSAGE,
@@ -28,21 +28,19 @@ from .const import (
 async def initial_trigger_handler(store: Store, game: Game, update: Update):
     if update.object.action == ADD_TO_CHAT_EVENT and game is None:
         await store.vk_api.send_message(
-            Message(update.object.peer_id, GREETING_MAESSAGE, keyboard=GREETING)
+            Message(update.object.peer_id, GREETING_MESSAGE, keyboard=GREETING)
         )
 
 
 @StateProcessor.register_handler(GameState.start_trigger)
 async def start_trigger_handler(store: Store, game: Game, update: Update):
-    if update.object.payload == Payload(command="start"):
-        answ_msg, msg, keyboard = "Игра начинается", INVITATION_TO_BID, BID
-        game = await store.game.create_game(update.object.peer_id)
-        if isinstance(game, UserRegistrationFailed):
-            answ_msg, msg, keyboard = (
-                "Ошибка регистрации",
-                "Предоставьте боту права администратора!",
-                GREETING,
-            )
+    if update.object.payload == Payload(command="greeting"):
+        answ_msg, msg, keyboard = (
+            "Добро пожаловать",
+            "Выберите количество игроков за столом",
+            NUMBER_PLAYERS,
+        )
+        await store.game.create_game(update.object.peer_id)
         await store.vk_api.send_answer(update.object, answ_msg)
         await store.vk_api.send_message(
             Message(update.object.peer_id, msg, keyboard=keyboard)
@@ -56,13 +54,33 @@ async def menu_selection_handler(store: Store, game: Game, update: Update):
 
 @StateProcessor.register_handler(GameState.number_of_players)
 async def number_of_players_handler(store: Store, game: Game, update: Update):
-    pass
+    game.players_num = int(update.object.payload.command)
+    game.state = GameState.player_accession
+    await store.game.update_game(game)
+    await store.vk_api.send_answer(update.object, f"Игроков за столом {game.players_num}")
+    await store.vk_api.send_message(
+        Message(update.object.peer_id, "Приглашаем всех желающих", keyboard=REGISTER_PLAYER)
+    )
+
 
 
 @StateProcessor.register_handler(GameState.player_accession)
 async def player_accession_handler(store: Store, game: Game, update: Update):
-    pass
-
+    if update.object.payload == Payload(command="register"):
+        await store.game.register_player(game, update.object.user_id)
+    if update.object.payload == Payload(command="unregister"):
+        await store.game.unregister_player(game, update.object.user_id)
+    msg = "Игроки набираются"
+    tasks = []
+    if game.players_num == len(game.players):
+        msg = "Стол заполнен. Приступим к игре."
+        game.state = GameState.wait_for_bid
+        tasks.append(store.game.update_game(game))
+        tasks.append(store.vk_api.send_message(
+            Message(update.object.peer_id, INVITATION_TO_BID, keyboard=BID)
+        ))
+    
+    await asyncio.gather(*tasks, store.vk_api.send_answer(update.object, msg))
 
 @StateProcessor.register_handler(GameState.wait_for_bid)
 async def wait_for_bid_handler(store: Store, game: Game, update: Update):
@@ -78,14 +96,17 @@ async def wait_for_bid_handler(store: Store, game: Game, update: Update):
 async def action_selection_handler(store: Store, game: Game, update: Update):
     player_id = update.object.user_id
     player = list(filter(lambda x: x.user.vk_id == player_id, game.players))[-1]
-    {"double": handle_double, "stand": handle_stand, "hit": handle_hit}[
+    message = {"double": handle_double, "stand": handle_stand, "hit": handle_hit}[
         update.object.payload.command
     ](player, game)
     await asyncio.gather(
         store.vk_api.send_answer(
-            update.object, f"{player.user.user_name} {update.object.payload.command}"
+            update.object, message
         ),
         store.game.update_player(player),
+        inform_players(
+            store.vk_api.send_message, game, "", keyboard=DECISION_MAKING, blind=True
+        ),
     )
     players_ready = list(filter(lambda x: x.status == PlayerStatus.STAND, game.players))
     if len(players_ready) == len(game.players):
@@ -95,7 +116,8 @@ async def action_selection_handler(store: Store, game: Game, update: Update):
 @StateProcessor.register_handler(GameState.continue_or_leave)
 async def continue_or_leave_handler(store: Store, game: Game, update: Update):
     game.finished_at = datetime.now()
-    update.object.payload = Payload(command="start")
-    await asyncio.gather(
-        start_trigger_handler(store, None, update), store.game.update_game(game)
-    )
+    if update.object.payload == Payload(command="continue"):
+        update.object.payload = Payload(command="greeting")
+        await asyncio.gather(
+            start_trigger_handler(store, None, update), store.game.update_game(game)
+        )

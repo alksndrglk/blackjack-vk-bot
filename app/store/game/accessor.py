@@ -15,7 +15,7 @@ from app.game.models import (
     UserModel,
     User,
 )
-from sqlalchemy import select, and_, update
+from sqlalchemy import select, and_, update, delete
 from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy.dialects.postgresql import insert
 
@@ -40,10 +40,7 @@ class BlackJackAccessor(BaseAccessor):
         self.logger.info(obj)
         if obj is None:
             return None
-        try:
-            return obj.to_dct()
-        except Exception as e:
-            print(e)
+        return obj.to_dct()
 
     async def create_game(self, peer_id: int):
         users = await self.user_registration(peer_id)
@@ -52,15 +49,43 @@ class BlackJackAccessor(BaseAccessor):
             return UserRegistrationFailed()
         game = GameModel(
             chat_id=peer_id,
-            state=GameState.wait_for_bid.name,
-            players=[
-                PlayerModel(user_id=u.id, status=PlayerStatus.BETS) for u in users
-            ],
+            state=GameState.number_of_players.name,
             stats=[GameStatsModel()],
         )
         async with self.app.database.session() as session:
             async with session.begin():
                 session.add(game)
+
+    async def register_player(self, game: Game, user_id: int):
+        async with self.app.database.session() as session:
+            async with session.begin():
+                statement = insert(PlayerModel).values(
+                        {
+                            "user_id": user_id,
+                            "game_id": game.id,
+                            "status": PlayerStatus.BETS, 
+                        }
+                )
+                result = await session.execute(
+                    statement.on_conflict_do_nothing(
+                    ).returning(PlayerModel)
+                )
+        obj = result.fetchone()
+        if obj is None:
+            return 
+        try:
+            game.players.append(Player(*obj))
+        except Exception as e:
+            print(e)
+
+    async def unregister_player(self, game: Game, user_id: int):
+        async with self.app.database.session() as session:
+            async with session.begin():
+                statement = delete(PlayerModel).where(
+                    and_(PlayerModel.user_id == user_id, PlayerModel.game_id == game.id)
+                )
+                await session.execute(statement)
+        game.players = list(filter(lambda x: x.user_id !=user_id, game.players))
 
     async def user_registration(self, peer_id: int) -> list[User]:
         chat_members = await self.app.store.vk_api.get_conversation_members(peer_id)
@@ -95,6 +120,7 @@ class BlackJackAccessor(BaseAccessor):
                             "current_player": game.current_player,
                             "hand": json.dumps(game.hand),
                             "finished_at": game.finished_at,
+                            "players_num": game.players_num
                         }
                     )
                 )

@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing
 from app.game.models import Game, GameState
 from app.store import Store
-from app.store.vk_api.dataclasses import Update
+from app.store.vk_api.dataclasses import Update, UpdateEventObject, UpdateMessageObject
 
 
 class StateProcessor:
@@ -17,8 +17,9 @@ class StateProcessor:
         return decorator
 
     async def process(self, store: Store, game: Game, update: Update):
-        command_type = self.get_state(game, update.type_)
-        await self.handlers[command_type](store, game, update)
+        if (game is None and isinstance(update.object, UpdateMessageObject)) or isinstance(update.object, UpdateEventObject):
+            command_type = self.get_state(game, update.type_)
+            await self.handlers[command_type](store, game, update)
 
     def get_state(self, game: Game, update_type: str) -> int:
         if game:
