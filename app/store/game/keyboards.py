@@ -56,7 +56,7 @@ BID = {
             {
                 "action": {
                     "type": "callback",
-                    "payload": '{"command": "cancel_bid"}',
+                    "payload": '{"command": "bid_cancel"}',
                     "label": "Отмена",
                 },
                 "color": "primary",

@@ -1,11 +1,22 @@
-from dataclasses import asdict
 from datetime import datetime
-from typing import Optional
+import json
+from os import stat
+from typing import Optional, Union
 from app.base.base_accessor import BaseAccessor
-from app.store.database import db
-from app.game.models import Game, GameModel, GameState, PlayerModel, UserModel, User
-from sqlalchemy import select, and_
-from sqlalchemy.orm import joinedload
+from app.game.models import (
+    Game,
+    GameModel,
+    GameState,
+    GameStats,
+    GameStatsModel,
+    Player,
+    PlayerModel,
+    PlayerStatus,
+    UserModel,
+    User,
+)
+from sqlalchemy import select, and_, update
+from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy.dialects.postgresql import insert
 
 
@@ -21,28 +32,32 @@ class BlackJackAccessor(BaseAccessor):
                 .where(
                     and_(GameModel.chat_id == chat_id, GameModel.finished_at == None)
                 )
-                .options(joinedload(GameModel.players))
+                .options(joinedload(GameModel.players).subqueryload(PlayerModel.user))
+                .options(joinedload(GameModel.stats))
             )
 
         obj: Union[GameModel, None] = result.scalar()
         self.logger.info(obj)
         if obj is None:
             return None
-        return obj.to_dct()
+        try:
+            return obj.to_dct()
+        except Exception as e:
+            print(e)
 
     async def create_game(self, peer_id: int):
-        print("creating game")
         users = await self.user_registration(peer_id)
-        print(users)
         self.logger.info(users)
         if not users:
             return UserRegistrationFailed()
         game = GameModel(
             chat_id=peer_id,
             state=GameState.wait_for_bid.name,
-            players=[PlayerModel(user_id=u.id) for u in users],
+            players=[
+                PlayerModel(user_id=u.id, status=PlayerStatus.BETS) for u in users
+            ],
+            stats=[GameStatsModel()],
         )
-        self.logger.info(game)
         async with self.app.database.session() as session:
             async with session.begin():
                 session.add(game)
@@ -68,11 +83,72 @@ class BlackJackAccessor(BaseAccessor):
                 )
         return [User(*u) for u in result]
 
-    async def update_game(self):
-        pass
+    async def update_game(self, game: Game):
+        async with self.app.database.session() as session:
+            async with session.begin():
+                statement = (
+                    update(GameModel)
+                    .where(GameModel.id == game.id)
+                    .values(
+                        {
+                            "state": game.state,
+                            "current_player": game.current_player,
+                            "hand": json.dumps(game.hand),
+                            "finished_at": game.finished_at,
+                        }
+                    )
+                )
+                await session.execute(statement)
+        self.logger.info(f"updating game: {game}")
 
-    async def update_player(self):
-        pass
+    async def update_player(self, player: Player):
+        async with self.app.database.session() as session:
+            async with session.begin():
+                statement = (
+                    update(PlayerModel)
+                    .where(PlayerModel.id == player.id)
+                    .values(
+                        {
+                            "amount": player.amount,
+                            "hand": json.dumps(player.hand),
+                            "bid": player.bid,
+                            "status": player.status,
+                        }
+                    )
+                )
+                await session.execute(statement)
+        self.logger.info(f"updating player: {player}")
 
-    async def update_user(self):
-        pass
+    async def update_user(self, user: User):
+        async with self.app.database.session() as session:
+            async with session.begin():
+                statement = (
+                    update(UserModel)
+                    .where(UserModel.id == user.id)
+                    .values(
+                        {
+                            "wins": user.wins,
+                            "loss": user.loss,
+                        }
+                    )
+                )
+                await session.execute(statement)
+        self.logger.info(f"updating user: {user}")
+
+    async def update_game_stats(self, game_stats: GameStats):
+        async with self.app.database.session() as session:
+            async with session.begin():
+                statement = (
+                    update(GameStatsModel)
+                    .where(GameStatsModel.id == game_stats.id)
+                    .values(
+                        {
+                            "wins": game_stats.wins,
+                            "loss": game_stats.loss,
+                            "draw": game_stats.draw,
+                            "income": game_stats.income,
+                        }
+                    )
+                )
+            await session.execute(statement)
+        self.logger.info(f"updating game_stats: {game_stats}")

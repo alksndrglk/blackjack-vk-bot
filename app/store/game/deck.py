@@ -15,8 +15,24 @@ class Card:
     suite: str
     value: int
 
+    def __str__(self):
+        return f"{self.rank}{self.suite} "
 
-def create_deck() -> list[Card]:
+
+def create_deck(game_id: int) -> list[Card]:
     deck = [Card(rank=r, suite=s, value=values[r]) for r, s in product(rank, suites)]
     shuffle(deck)
+    GamingDecks.add_deck(deck=deck, game_id=game_id)
     return deck
+
+
+class GamingDecks:
+    decks: dict[int, list[Card]] = {}
+
+    @classmethod
+    def add_deck(cls, deck, game_id):
+        cls.decks[game_id] = deck
+
+    @classmethod
+    def get_deck(cls, game_id):
+        return cls.decks.get(game_id, create_deck(game_id))

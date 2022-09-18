@@ -1,8 +1,18 @@
+import asyncio
+from datetime import datetime
+from .gameplay import (
+    handle_bidding,
+    handle_deck_creation,
+    handle_stand,
+    handle_hit,
+    handle_double,
+    handle_check_results,
+)
 from app.store import Store
 from app.store.game.accessor import UserRegistrationFailed
 from app.store.vk_api.dataclasses import Message, Payload, Update
 from .state import StateProcessor
-from app.game.models import Game, GameState
+from app.game.models import Game, GameState, PlayerStatus
 from .keyboards import GREETING, BID, DECISION_MAKING, END
 from .const import (
     GREETING_MAESSAGE,
@@ -56,20 +66,36 @@ async def player_accession_handler(store: Store, game: Game, update: Update):
 
 @StateProcessor.register_handler(GameState.wait_for_bid)
 async def wait_for_bid_handler(store: Store, game: Game, update: Update):
-    bid_msg = "{} сделал ставку: {}"
-    await store.vk_api.send_answer(
-        update.object,
-        bid_msg.format(
-            update.object.user_id, update.object.payload.command.split("_")[-1]
-        ),
+    await handle_bidding(store, game, update)
+    players_ready = list(
+        filter(lambda x: x.status == PlayerStatus.WAITING, game.players)
     )
+    if len(players_ready) == len(game.players):
+        await handle_deck_creation(store, game)
 
 
 @StateProcessor.register_handler(GameState.action_selection)
 async def action_selection_handler(store: Store, game: Game, update: Update):
-    pass
+    player_id = update.object.user_id
+    player = list(filter(lambda x: x.user.vk_id == player_id, game.players))[-1]
+    {"double": handle_double, "stand": handle_stand, "hit": handle_hit}[
+        update.object.payload.command
+    ](player, game)
+    await asyncio.gather(
+        store.vk_api.send_answer(
+            update.object, f"{player.user.user_name} {update.object.payload.command}"
+        ),
+        store.game.update_player(player),
+    )
+    players_ready = list(filter(lambda x: x.status == PlayerStatus.STAND, game.players))
+    if len(players_ready) == len(game.players):
+        await handle_check_results(store, game)
 
 
 @StateProcessor.register_handler(GameState.continue_or_leave)
 async def continue_or_leave_handler(store: Store, game: Game, update: Update):
-    pass
+    game.finished_at = datetime.now()
+    update.object.payload = Payload(command="start")
+    await asyncio.gather(
+        start_trigger_handler(store, None, update), store.game.update_game(game)
+    )
