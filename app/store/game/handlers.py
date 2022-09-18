@@ -13,7 +13,14 @@ from app.store import Store
 from app.store.vk_api.dataclasses import Message, Payload, Update
 from .state import StateProcessor
 from app.game.models import Game, GameState, Player, PlayerStatus
-from .keyboards import GREETING, BID, DECISION_MAKING, END, NUMBER_PLAYERS, REGISTER_PLAYER
+from .keyboards import (
+    GREETING,
+    BID,
+    DECISION_MAKING,
+    END,
+    NUMBER_PLAYERS,
+    REGISTER_PLAYER,
+)
 from .const import (
     GREETING_MESSAGE,
     PLAYER_HAND,
@@ -57,11 +64,14 @@ async def number_of_players_handler(store: Store, game: Game, update: Update):
     game.players_num = int(update.object.payload.command)
     game.state = GameState.player_accession
     await store.game.update_game(game)
-    await store.vk_api.send_answer(update.object, f"Игроков за столом {game.players_num}")
-    await store.vk_api.send_message(
-        Message(update.object.peer_id, "Приглашаем всех желающих", keyboard=REGISTER_PLAYER)
+    await store.vk_api.send_answer(
+        update.object, f"Игроков за столом {game.players_num}"
     )
-
+    await store.vk_api.send_message(
+        Message(
+            update.object.peer_id, "Приглашаем всех желающих", keyboard=REGISTER_PLAYER
+        )
+    )
 
 
 @StateProcessor.register_handler(GameState.player_accession)
@@ -76,11 +86,14 @@ async def player_accession_handler(store: Store, game: Game, update: Update):
         msg = "Стол заполнен. Приступим к игре."
         game.state = GameState.wait_for_bid
         tasks.append(store.game.update_game(game))
-        tasks.append(store.vk_api.send_message(
-            Message(update.object.peer_id, INVITATION_TO_BID, keyboard=BID)
-        ))
-    
+        tasks.append(
+            store.vk_api.send_message(
+                Message(update.object.peer_id, INVITATION_TO_BID, keyboard=BID)
+            )
+        )
+
     await asyncio.gather(*tasks, store.vk_api.send_answer(update.object, msg))
+
 
 @StateProcessor.register_handler(GameState.wait_for_bid)
 async def wait_for_bid_handler(store: Store, game: Game, update: Update):
@@ -100,9 +113,7 @@ async def action_selection_handler(store: Store, game: Game, update: Update):
         update.object.payload.command
     ](player, game)
     await asyncio.gather(
-        store.vk_api.send_answer(
-            update.object, message
-        ),
+        store.vk_api.send_answer(update.object, message),
         store.game.update_player(player),
         inform_players(
             store.vk_api.send_message, game, "", keyboard=DECISION_MAKING, blind=True

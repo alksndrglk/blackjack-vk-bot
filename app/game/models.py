@@ -17,7 +17,7 @@ from sqlalchemy import (
     Enum,
     DateTime,
     ForeignKey,
-    UniqueConstraint
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 

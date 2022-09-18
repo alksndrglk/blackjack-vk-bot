@@ -17,7 +17,9 @@ class StateProcessor:
         return decorator
 
     async def process(self, store: Store, game: Game, update: Update):
-        if (game is None and isinstance(update.object, UpdateMessageObject)) or isinstance(update.object, UpdateEventObject):
+        if (
+            game is None and isinstance(update.object, UpdateMessageObject)
+        ) or isinstance(update.object, UpdateEventObject):
             command_type = self.get_state(game, update.type_)
             await self.handlers[command_type](store, game, update)
 

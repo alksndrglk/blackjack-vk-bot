@@ -60,19 +60,18 @@ class BlackJackAccessor(BaseAccessor):
         async with self.app.database.session() as session:
             async with session.begin():
                 statement = insert(PlayerModel).values(
-                        {
-                            "user_id": user_id,
-                            "game_id": game.id,
-                            "status": PlayerStatus.BETS, 
-                        }
+                    {
+                        "user_id": user_id,
+                        "game_id": game.id,
+                        "status": PlayerStatus.BETS,
+                    }
                 )
                 result = await session.execute(
-                    statement.on_conflict_do_nothing(
-                    ).returning(PlayerModel)
+                    statement.on_conflict_do_nothing().returning(PlayerModel)
                 )
         obj = result.fetchone()
         if obj is None:
-            return 
+            return
         try:
             game.players.append(Player(*obj))
         except Exception as e:
@@ -85,7 +84,7 @@ class BlackJackAccessor(BaseAccessor):
                     and_(PlayerModel.user_id == user_id, PlayerModel.game_id == game.id)
                 )
                 await session.execute(statement)
-        game.players = list(filter(lambda x: x.user_id !=user_id, game.players))
+        game.players = list(filter(lambda x: x.user_id != user_id, game.players))
 
     async def user_registration(self, peer_id: int) -> list[User]:
         chat_members = await self.app.store.vk_api.get_conversation_members(peer_id)
@@ -120,7 +119,7 @@ class BlackJackAccessor(BaseAccessor):
                             "current_player": game.current_player,
                             "hand": json.dumps(game.hand),
                             "finished_at": game.finished_at,
-                            "players_num": game.players_num
+                            "players_num": game.players_num,
                         }
                     )
                 )
