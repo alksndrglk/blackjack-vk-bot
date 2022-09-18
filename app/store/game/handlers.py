@@ -12,20 +12,17 @@ from .gameplay import (
 from app.store import Store
 from app.store.vk_api.dataclasses import Message, Payload, Update
 from .state import StateProcessor
-from app.game.models import Game, GameState, Player, PlayerStatus
+from app.game.models import Game, GameState
+from app.player.models import Player, PlayerStatus
 from .keyboards import (
     GREETING,
     BID,
     DECISION_MAKING,
-    END,
     NUMBER_PLAYERS,
     REGISTER_PLAYER,
 )
 from .const import (
     GREETING_MESSAGE,
-    PLAYER_HAND,
-    PLAYER_BID,
-    BYE_MESSAGE,
     ADD_TO_CHAT_EVENT,
     INVITATION_TO_BID,
 )

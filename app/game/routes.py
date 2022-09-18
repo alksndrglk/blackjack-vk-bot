@@ -5,6 +5,6 @@ if typing.TYPE_CHECKING:
 
 
 def setup_routes(app: "Application"):
-    from app.game.view import GameStatsView
+    from app.game.views import GameStatsView
 
     app.router.add_view("/game.statistic", GameStatsView)

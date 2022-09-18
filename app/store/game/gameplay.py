@@ -1,6 +1,7 @@
 import asyncio
 from typing import Callable, Union
-from app.game.models import Game, GameState, Player, PlayerStatus
+from app.game.models import Game, GameState
+from app.player.models import Player, PlayerStatus
 from app.store import Store
 from app.store.game.keyboards import DECISION_MAKING, END
 from app.store.vk_api.dataclasses import Message, Update
@@ -147,13 +148,13 @@ def score(game: Game, player: Player):
         player.amount += player.bid * 2
         player.user.wins += 1
         game.stats.loss += 1
-        game.stats.income += player.bid * 2
+        game.stats.income -= player.bid
     if dealer_win:
         player.status = PlayerStatus.LOSED
-        player.amount -= player.bid * 2
+        player.amount -= player.bid
         player.user.loss += 1
         game.stats.wins += 1
-        game.stats.income -= player.bid * 2
+        game.stats.income += player.bid * 2
     if draw:
         player.status = PlayerStatus.DRAW
         player.amount += player.bid

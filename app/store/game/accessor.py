@@ -9,12 +9,9 @@ from app.game.models import (
     GameState,
     GameStats,
     GameStatsModel,
-    Player,
-    PlayerModel,
-    PlayerStatus,
-    UserModel,
-    User,
 )
+from app.player.models import Player, PlayerModel, PlayerStatus
+from app.user.models import User, UserModel
 from sqlalchemy import select, and_, update, delete
 from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy.dialects.postgresql import insert
