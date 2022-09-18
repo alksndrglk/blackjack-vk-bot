@@ -19,6 +19,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from app.user.models import User
 
+
 class PlayerStatus(enum.Enum):
     BETS = enum.auto()
     HIT = enum.auto()
