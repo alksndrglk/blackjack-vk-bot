@@ -120,7 +120,7 @@ class GameState(enum.Enum):
 
 @dataclass
 class Game:
-    id: Optional[int]
+    id: int
     chat_id: int
     state: int
     current_player: int

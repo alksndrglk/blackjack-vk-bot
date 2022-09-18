@@ -47,9 +47,9 @@ def handle_player_finished_biding(player: Player):
 
 
 async def handle_deck_creation(store: Store, game: Game):
-    deck = create_deck(game_id=game.chat_id)
-    [get_card(2, deck, pl) for pl in game.players]
-    get_card(2, deck, game)
+    create_deck(game.id)
+    [get_card(2, game.id, pl) for pl in game.players]
+    get_card(2, game.id, game)
 
     tasks = [
         store.game.update_game(game),
@@ -80,9 +80,15 @@ async def inform_players(
     )
 
 
-def get_card(value: int, deck: list[Card], reciever: Union[Game, Player]):
+def get_card(value: int, game_id: int, reciever: Union[Game, Player]):
+    deck = GamingDecks.get_deck(game_id)
     for _ in range(value):
-        card = deck.pop()
+        try:
+            card = deck.pop()
+        except IndexError:
+            deck = create_deck(game_id)
+            card = deck.pop()
+
         reciever.hand["hand"] = reciever.hand.get("hand", "") + str(card)
         reciever.hand["value"] = reciever.hand.get("value", 0) + card.value
 
@@ -98,12 +104,12 @@ def handle_double(player: Player, game: Game):
 
 
 def handle_hit(player: Player, game: Game):
-    get_card(1, GamingDecks.get_deck(game.id), player)
+    get_card(1, game.id, player)
 
 
 def handle_dealer_hit(game: Game):
     while game.hand["value"] < 17:
-        get_card(1, GamingDecks.get_deck(game.chat_id), game)
+        get_card(1, game.id, game)
 
 
 async def handle_check_results(store: Store, game: Game):
@@ -113,7 +119,7 @@ async def handle_check_results(store: Store, game: Game):
     tasks = [
         store.game.update_game(game),
         store.game.update_game_stats(game.stats),
-        * [store.game.update_player(player) for player in game.players],
+        *[store.game.update_player(player) for player in game.players],
         *[store.game.update_user(player.user) for player in game.players],
         inform_players(store.vk_api.send_message, game, "Результаты:", END),
     ]
