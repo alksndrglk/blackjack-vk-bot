@@ -8,7 +8,7 @@ database:
   port: $DB_PORT
   user: $DB_USER
   password: $DB_PASS
-  database:  $DB_NAME
+  database:  $DB_DATABASE
 bot:
   token:  $BOT_TOKEN
   group_id: $GROUP_ID

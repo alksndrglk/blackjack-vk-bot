@@ -1,6 +1,6 @@
 #!/bin/bash
 . .env
-envsubst < config/prod_config.yml > config/config.yml
+envsubst < config/prod_config.yml > config/config.yaml
 
 alembic revision --autogenerate -m "Init"
 alembic upgrade head

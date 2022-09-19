@@ -1,15 +1,6 @@
 version: '3.2'
 
 services:
-  app:
-    image: alksglk/blackjack
-    build: .
-    restart: always
-    depends_on:
-      - postgres
-    env_file:
-      - .env
-
   postgres:
       image: postgres:14
       restart: always
@@ -23,3 +14,13 @@ services:
       - .env
       volumes:
       - ./postgres-data:/var/lib/postgresql/data
+  
+  app:
+    image: alksglk/blackjack
+    build: .
+    restart: always
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+
