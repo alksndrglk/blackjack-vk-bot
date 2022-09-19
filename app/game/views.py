@@ -1,6 +1,6 @@
 from aiohttp_apispec import request_schema, response_schema, docs, querystring_schema
 
-from app.game.schemes import GameStatsSchema, GameListSchema, LimitSchema
+from app.game.schemes import GameSchema, GameListSchema, LimitSchema
 from app.web.app import View
 from app.web.mixins import AuthRequiredMixin
 from app.web.utils import json_response
@@ -8,11 +8,12 @@ from app.web.utils import json_response
 
 class GameStatsView(AuthRequiredMixin, View):
     @docs(tags=["Game"], description="Game Stats View")
-    @response_schema(GameStatsSchema, 200)
+    @response_schema(GameSchema, 200)
     async def get(self):
-        chat_id = self.request.match_info.get("chat_id")
-        game = await self.store.game.get_game(chat_id)
-        return json_response(data=GameStatsSchema().dump(game))
+        chat_id = self.request.match_info.get("game_id")
+        game = await self.store.game.get_game(int(chat_id))
+        print(game)
+        return json_response(data=GameSchema().dump(game))
 
 
 class GameListView(AuthRequiredMixin, View):

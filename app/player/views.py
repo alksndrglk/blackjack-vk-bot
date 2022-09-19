@@ -12,7 +12,7 @@ class PlayerIDView(AuthRequiredMixin, View):
     @querystring_schema(PlayerIDSchema)
     @response_schema(PlayerSchema, 200)
     async def get(self):
-        vk_id = self.request.get("querystring", {}).get("user_id")
+        vk_id = self.request.get("querystring", {}).get("player_id")
         player = await self.store.game.get_player(vk_id)
         return json_response(data=PlayerSchema().dump(player))
 
