@@ -174,3 +174,19 @@ class BlackJackAccessor(BaseAccessor):
                 )
             await session.execute(statement)
         self.logger.info(f"updating game_stats: {game_stats}")
+
+    async def list_users(self, limit, offset):
+        pass
+
+    async def list_games(self, limit, offset):
+        pass
+
+    async def list_players(self, limit, offset):
+        pass
+
+    async def get_user(self, user_id):
+        pass
+
+    async def get_player(self, user_id):
+        pass
+
