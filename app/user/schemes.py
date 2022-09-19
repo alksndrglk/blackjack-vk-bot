@@ -13,6 +13,7 @@ class UserSchema(Schema):
     created_at = fields.DateTime()
     wins = fields.Int()
     loss = fields.Int()
+    amount = fields.Int()
 
     class Meta:
         unknown = EXCLUDE

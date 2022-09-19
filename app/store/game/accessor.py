@@ -131,7 +131,6 @@ class BlackJackAccessor(BaseAccessor):
                     .where(PlayerModel.id == player.id)
                     .values(
                         {
-                            "amount": player.amount,
                             "hand": json.dumps(player.hand),
                             "bid": player.bid,
                             "status": player.status,
@@ -149,6 +148,7 @@ class BlackJackAccessor(BaseAccessor):
                     .where(UserModel.id == user.id)
                     .values(
                         {
+                            "amount": user.amount,
                             "wins": user.wins,
                             "loss": user.loss,
                         }
@@ -176,50 +176,61 @@ class BlackJackAccessor(BaseAccessor):
         self.logger.info(f"updating game_stats: {game_stats}")
 
     async def list_users(self, limit, offset) -> Optional[list[User]]:
+        query = select(UserModel)
+        if limit:
+            query = query.limit(limit)
+        if offset:
+            query = query.offset(offset)
         async with self.app.database.session() as session:
-            result = await session.execute(
-                select(UserModel)
-            )
+            result = await session.execute(query)
 
-        obj: Union[GameModel, None] = result.scalar()
+        obj: Union[GameModel, None] = result.scalars()
         self.logger.info(obj)
         if obj is None:
             return None
-        return obj.to_dct()
+        return [u.to_dct() for u in obj]
 
     async def list_games(self, limit, offset) -> Optional[list[Game]]:
+        query = (
+            select(GameModel)
+            .options(joinedload(GameModel.players).subqueryload(PlayerModel.user))
+            .options(joinedload(GameModel.stats))
+        )
+        if limit:
+            query = query.limit(limit)
+        if offset:
+            query = query.offset(offset)
         async with self.app.database.session() as session:
-            result = await session.execute(
-                select(GameModel)
-                .options(joinedload(GameModel.players).subqueryload(PlayerModel.user))
-                .options(joinedload(GameModel.stats))
-            )
+            result = await session.execute(query)
 
-        obj: Union[GameModel, None] = result.scalar()
+        obj: Union[GameModel, None] = result.scalars()
         self.logger.info(obj)
         if obj is None:
             return None
-        return obj.to_dct()
+        return [u.to_dct() for u in obj]
 
     async def list_players(self, limit, offset) -> Optional[list[Player]]:
+        print(limit, offset)
+        query = select(PlayerModel).options(joinedload(PlayerModel.user))
+        if limit:
+            query = query.limit(limit)
+        if offset:
+            query = query.offset(offset)
         async with self.app.database.session() as session:
-            result = await session.execute(
-                select(PlayerModel)
-                .options(joinedload(PlayerModel.user))
-            )
+            result = await session.execute(query)
 
-        obj: Union[PlayerModel, None] = result.scalar()
+        obj: Union[PlayerModel, None] = result.scalars()
         self.logger.info(obj)
         if obj is None:
             return None
-        return obj.to_dct()
+        return [u.to_dct() for u in obj]
 
     async def get_user(self, user_id: int) -> Optional[User]:
         async with self.app.database.session() as session:
-            result = await session.execute(
-                select(UserModel)
-                .where(UserModel.vk_id == user_id)
-            )
+            async with session.begin():
+                result = await session.execute(
+                    select(UserModel).where(UserModel.vk_id == user_id)
+                )
 
         obj: Union[UserModel, None] = result.scalar()
         self.logger.info(obj)
@@ -229,14 +240,13 @@ class BlackJackAccessor(BaseAccessor):
 
     async def get_player(self, user_id: int) -> Optional[Player]:
         async with self.app.database.session() as session:
-            result = await session.execute(
-                select(PlayerModel)
-                .where(PlayerModel.user_id == user_id)
-            )
+            async with session.begin():
+                result = await session.execute(
+                    select(PlayerModel).where(PlayerModel.user_id == user_id)
+                )
 
         obj: Union[UserModel, None] = result.scalar()
         self.logger.info(obj)
         if obj is None:
             return None
         return obj.to_dct()
-

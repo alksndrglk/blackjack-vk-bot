@@ -29,9 +29,9 @@ def handle_player_bid(player: Player, update: Update):
     try:
         bid = int(update.object.payload.command.split("_")[-1]) + player.bid
         warn_msg = ""
-        if bid > player.amount:
-            bid = player.amount
-            warn_msg = f"Ставка не может быть больше {player.amount}\n"
+        if bid > player.user.amount:
+            bid = player.user.amount
+            warn_msg = f"Ставка не может быть больше {player.user.amount}\n"
         bid_msg = f"{warn_msg}{player.user.user_name} сделал ставку: {bid}"
     except:
         bid = 10
@@ -68,10 +68,15 @@ async def handle_deck_creation(store: Store, game: Game):
 
 
 async def inform_players(
-    func: Callable, game: Game, text: str, keyboard: dict, blind=False
+    func: Callable,
+    game: Game,
+    text: str,
+    keyboard: dict,
+    blind=False,
+    show_results=False,
 ):
     dealer_hand = game.show_hand(blind)
-    players_hand = "\n".join(u.show_hand() for u in game.players)
+    players_hand = "\n".join(u.show_hand(show_results) for u in game.players)
     await func(
         Message(
             peer_id=game.chat_id,
@@ -103,7 +108,7 @@ def handle_double(player: Player, game: Game):
     if player.status != PlayerStatus.STAND:
         player.status = PlayerStatus.HIT
         msg = handle_hit(player, game)
-        if player.bid * 2 <= player.amount:
+        if player.bid * 2 <= player.user.amount:
             player.bid *= 2
             return f"{msg} и делает удвоение ставки"
         return f"{msg}, слишком мало денег для удвоения"
@@ -132,7 +137,9 @@ async def handle_check_results(store: Store, game: Game):
         store.game.update_game_stats(game.stats),
         *[store.game.update_player(player) for player in game.players],
         *[store.game.update_user(player.user) for player in game.players],
-        inform_players(store.vk_api.send_message, game, "Результаты:", END),
+        inform_players(
+            store.vk_api.send_message, game, "Результаты:", END, show_results=True
+        ),
     ]
     await asyncio.gather(*tasks)
 
@@ -145,18 +152,18 @@ def score(game: Game, player: Player):
 
     if player_win:
         player.status = PlayerStatus.WIN
-        player.amount += player.bid * 2
+        player.user.amount += player.bid * 2
         player.user.wins += 1
         game.stats.loss += 1
         game.stats.income -= player.bid
     if dealer_win:
         player.status = PlayerStatus.LOSED
-        player.amount -= player.bid
+        player.user.amount -= player.bid
         player.user.loss += 1
         game.stats.wins += 1
         game.stats.income += player.bid * 2
     if draw:
         player.status = PlayerStatus.DRAW
-        player.amount += player.bid
+        player.user.amount += player.bid
         game.stats.draw += 1
     player.bid = 10

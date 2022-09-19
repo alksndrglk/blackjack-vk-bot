@@ -187,14 +187,6 @@ END = {
             {
                 "action": {
                     "type": "callback",
-                    "payload": '{"command": "leave"}',
-                    "label": "Закончить",
-                },
-                "color": "primary",
-            },
-            {
-                "action": {
-                    "type": "callback",
                     "payload": '{"command": "continue"}',
                     "label": "Играть Заново",
                 },

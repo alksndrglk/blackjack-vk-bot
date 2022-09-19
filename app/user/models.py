@@ -22,6 +22,7 @@ class User:
     created_at: datetime
     wins: int
     loss: int
+    amount: int
 
 
 class UserModel(db):
@@ -31,6 +32,7 @@ class UserModel(db):
     vk_id = Column(Integer, unique=True, nullable=False)
     user_name = Column(String, nullable=False)
     created_at = Column(DateTime, default=func.now())
+    amount = Column(Integer, nullable=False, default=1000)
     wins = Column(Integer, default=0)
     loss = Column(Integer, default=0)
 
@@ -42,4 +44,5 @@ class UserModel(db):
             created_at=self.created_at,
             wins=self.wins,
             loss=self.loss,
+            amount=self.amount,
         )
