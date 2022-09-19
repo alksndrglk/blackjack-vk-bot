@@ -1,0 +1,39 @@
+name: Publish on Docker Hub and Deploy on VPS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build_and_pub:
+    runs-on: [ubuntu-latest]
+    env:
+      LOGIN: ${{ secrets.DOCKER_HUB_USER }}
+      NAME: blackjack
+    steps:
+      - name: Login to docker.io
+        run:  echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USER  }} --password-stdin
+      - uses: actions/checkout@master
+      - name: Build image
+        run: docker build -t $LOGIN/$NAME:latest -f Dockerfile .
+      - name: Push image to docker.io
+        run: docker push $LOGIN/$NAME:latest
+
+  deploy:
+    needs: [build_and_pub]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd bl_app
+            docker-compose stop
+            docker-compose rm -f
+            docker-compose pull
+            docker-compose up -d
