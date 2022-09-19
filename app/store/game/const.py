@@ -2,7 +2,7 @@ from app.store.vk_api.dataclasses import Action
 from app.web.app import app
 
 
-GREETING_MAESSAGE = """
+GREETING_MESSAGE = """
 Добро пожаловать в Чат-Бота БлэкДжек
 
 Цель игры — набрать 21 очко или близкую к этому сумму. Если игрок набирает сумму очков, превышающую 21, то его ставка проигрывает. 

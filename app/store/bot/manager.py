@@ -1,4 +1,3 @@
-
 import asyncio
 import typing
 from logging import getLogger
@@ -16,9 +15,6 @@ class BotManager:
         self.logger = getLogger("handler")
 
     async def handle_updates(self, updates: list[Update]):
-        # set из чатов в апдейтах
-        # взять все игры через gather
-        # запустить все процессы через gather
         chats = {upd.object.peer_id: upd for upd in updates}.keys()
         games = await asyncio.gather(
             *[self.app.store.game.get_game(id) for id in chats]

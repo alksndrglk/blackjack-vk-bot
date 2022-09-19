@@ -1,12 +1,12 @@
 GREETING = {
-    "one_time": True,
+    "one_time": False,
     "buttons": [
         [
             {
                 "action": {
                     "type": "callback",
-                    "payload": '{"command": "start"}',
-                    "label": "Старт",
+                    "payload": '{"command": "greeting"}',
+                    "label": "Начать",
                 },
                 "color": "positive",
             },
@@ -14,9 +14,82 @@ GREETING = {
     ],
 }
 
+REGISTER_PLAYER = {
+    "one_time": False,
+    "buttons": [
+        [
+            {
+                "action": {
+                    "type": "callback",
+                    "payload": '{"command": "register"}',
+                    "label": "Регистрация",
+                },
+                "color": "positive",
+            },
+            {
+                "action": {
+                    "type": "callback",
+                    "payload": '{"command": "unregister"}',
+                    "label": "Отмена",
+                },
+                "color": "negative",
+            },
+        ]
+    ],
+}
+
+
+NUMBER_PLAYERS = {
+    "one_time": False,
+    "buttons": [
+        [
+            {
+                "action": {
+                    "type": "callback",
+                    "payload": '{"command": "1"}',
+                    "label": "1",
+                },
+                "color": "primary",
+            },
+            {
+                "action": {
+                    "type": "callback",
+                    "payload": '{"command": "2"}',
+                    "label": "2",
+                },
+                "color": "primary",
+            },
+            {
+                "action": {
+                    "type": "callback",
+                    "payload": '{"command": "3"}',
+                    "label": "3",
+                },
+                "color": "primary",
+            },
+            {
+                "action": {
+                    "type": "callback",
+                    "payload": '{"command": "4"}',
+                    "label": "4",
+                },
+                "color": "primary",
+            },
+            {
+                "action": {
+                    "type": "callback",
+                    "payload": '{"command": "5"}',
+                    "label": "5",
+                },
+                "color": "primary",
+            },
+        ],
+    ],
+}
+
 
 BID = {
-    "one_time": True,
+    "one_time": False,
     "buttons": [
         [
             {
@@ -56,7 +129,7 @@ BID = {
             {
                 "action": {
                     "type": "callback",
-                    "payload": '{"command": "cancel_bid"}',
+                    "payload": '{"command": "bid_cancel"}',
                     "label": "Отмена",
                 },
                 "color": "primary",
@@ -74,7 +147,7 @@ BID = {
 }
 
 DECISION_MAKING = {
-    "one_time": True,
+    "one_time": False,
     "buttons": [
         [
             {
@@ -108,17 +181,9 @@ DECISION_MAKING = {
 }
 
 END = {
-    "one_time": True,
+    "one_time": False,
     "buttons": [
         [
-            {
-                "action": {
-                    "type": "callback",
-                    "payload": '{"command": "leave"}',
-                    "label": "Закончить",
-                },
-                "color": "primary",
-            },
             {
                 "action": {
                     "type": "callback",
