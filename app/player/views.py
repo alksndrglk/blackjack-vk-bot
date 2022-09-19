@@ -9,10 +9,10 @@ from app.web.utils import json_response
 
 class PlayerIDView(AuthRequiredMixin, View):
     @docs(tags=["Player"], description="Player ID View")
-    @request_schema(PlayerIDSchema)
+    @querystring_schema(PlayerIDSchema)
     @response_schema(PlayerSchema, 200)
     async def get(self):
-        vk_id = self.data.get("user_id")
+        vk_id = self.request.get("querystring", {}).get("user_id")
         player = await self.store.game.get_player(vk_id)
         return json_response(data=PlayerSchema().dump(player))
 
