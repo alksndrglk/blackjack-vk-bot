@@ -1,21 +1,28 @@
-from aiohttp_apispec import request_schema, response_schema, docs, query_string_schema
+from aiohttp_apispec import request_schema, response_schema, docs, querystring_schema
 
-from app.game.schemes import PlayerIDSchema, PlayerListSchema
+from app.player.schemes import PlayerIDSchema, PlayerListSchema, PlayerSchema
+from app.game.schemes import LimitSchema
 from app.web.app import View
+from app.web.mixins import AuthRequiredMixin
 from app.web.utils import json_response
 
 
-class PlayerIDView(View):
+class PlayerIDView(AuthRequiredMixin, View):
     @docs(tags=["Player"], description="Player ID View")
     @request_schema(PlayerIDSchema)
-    @response_schema(PlayerIDSchema, 200)
+    @response_schema(PlayerSchema, 200)
     async def get(self):
-        return self.response
+        vk_id = self.data.get("user_id")
+        player = await self.store.game.get_player(vk_id)
+        return json_response(data=PlayerSchema().dump(player))
 
 
-class PlayerListView(View):
+class PlayerListView(AuthRequiredMixin, View):
     @docs(tags=["Player"], description="Player List View")
-    @query_string_schema(PlayerListSchema)
+    @querystring_schema(LimitSchema)
     @response_schema(PlayerListSchema, 200)
     async def get(self):
-        return self.response
+        limit = self.request.get("querystring", {}).get("limit")
+        offset = self.request.get("querystring", {}).get("offset")
+        players = await self.store.game.list_players(limit=limit, offset=offset)
+        return json_response(data=PlayerListSchema().dump({"players": players}))
