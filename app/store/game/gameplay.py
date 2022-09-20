@@ -11,16 +11,17 @@ from .deck import Card, GamingDecks, create_deck
 async def handle_bidding(store: Store, game: Game, update: Update):
     player_id = update.object.user_id
     player = list(filter(lambda x: x.user.vk_id == player_id, game.players))[-1]
-    if update.object.payload.command.startswith("bid_"):
-        msg = handle_player_bid(player, update)
-    else:
-        msg = handle_player_finished_biding(player)
+    msg = "Вы не играете за этим столом"
+    tasks = [store.vk_api.send_answer(update.object, msg)]
+    if player:
+        if update.object.payload.command.startswith("bid_"):
+            msg = handle_player_bid(player, update)
+        else:
+            msg = handle_player_finished_biding(player)
 
-    tasks = []
-    if msg:
-        tasks.append(store.vk_api.send_answer(update.object, msg))
-        tasks.append(store.game.update_player(player))
-        await asyncio.gather(*tasks)
+        if msg:
+            tasks.append(store.game.update_player(player))
+    await asyncio.gather(*tasks)
 
 
 def handle_player_bid(player: Player, update: Update):
