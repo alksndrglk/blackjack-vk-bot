@@ -105,7 +105,12 @@ async def wait_for_bid_handler(store: Store, game: Game, update: Update):
 @StateProcessor.register_handler(GameState.action_selection)
 async def action_selection_handler(store: Store, game: Game, update: Update):
     player_id = update.object.user_id
-    player = list(filter(lambda x: x.user.vk_id == player_id, game.players))[-1]
+    player = list(filter(lambda x: x.user.vk_id == player_id, game.players))
+    if not player:
+        msg = "Вы не играете за этим столом"
+        await store.vk_api.send_answer(update.object, msg)
+        return
+    player = player[-1]
     message = {"double": handle_double, "stand": handle_stand, "hit": handle_hit}[
         update.object.payload.command
     ](player, game)
