@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from typing import Callable, Union
 from app.game.models import Game, GameState
 from app.player.models import Player, PlayerStatus
@@ -138,6 +139,7 @@ async def handle_check_results(store: Store, game: Game):
         store.vk_api.send_message, game, "Результаты:", END, show_results=True
     ),
     game.state = GameState.continue_or_leave
+    game.finished_at = datetime.now()
     tasks = [
         store.game.update_game(game),
         store.game.update_game_stats(game.stats),
