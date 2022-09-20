@@ -46,7 +46,7 @@ class BlackJackAccessor(BaseAccessor):
             return UserRegistrationFailed()
         game = GameModel(
             chat_id=peer_id,
-            state=GameState.number_of_players.name,
+            state=GameState.number_of_players,
             stats=[GameStatsModel()],
         )
         async with self.app.database.session() as session:
