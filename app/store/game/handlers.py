@@ -1,5 +1,7 @@
 import asyncio
 from datetime import datetime
+
+from app.store.game.accessor import UserRegistrationFailed
 from .gameplay import (
     handle_bidding,
     handle_deck_creation,
@@ -44,7 +46,13 @@ async def start_trigger_handler(store: Store, game: Game, update: Update):
             "Выберите количество игроков за столом",
             NUMBER_PLAYERS,
         )
-        await store.game.create_game(update.object.peer_id)
+        result = await store.game.create_game(update.object.peer_id)
+        if isinstance(result, UserRegistrationFailed):
+            answ_msg, msg, keyboard = (
+                "Ошибка при регистрации игроков",
+                "Предоставьте боту права администратора",
+                GREETING,
+            )
         await store.vk_api.send_answer(update.object, answ_msg)
         await store.vk_api.send_message(
             Message(update.object.peer_id, msg, keyboard=keyboard)

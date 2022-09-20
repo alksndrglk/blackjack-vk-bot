@@ -85,6 +85,8 @@ class BlackJackAccessor(BaseAccessor):
 
     async def user_registration(self, peer_id: int) -> list[User]:
         chat_members = await self.app.store.vk_api.get_conversation_members(peer_id)
+        if not chat_members:
+            return None
         async with self.app.database.session() as session:
             async with session.begin():
                 statement = insert(UserModel).values(
