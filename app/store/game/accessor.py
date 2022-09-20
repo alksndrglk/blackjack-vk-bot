@@ -203,7 +203,7 @@ class BlackJackAccessor(BaseAccessor):
         async with self.app.database.session() as session:
             result = await session.execute(query)
 
-        obj: Union[GameModel, None] = result.scalars()
+        obj: Union[GameModel, None] = result.scalars().unique()
         self.logger.info(obj)
         if obj is None:
             return None
