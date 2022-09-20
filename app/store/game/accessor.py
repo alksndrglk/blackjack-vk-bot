@@ -172,7 +172,7 @@ class BlackJackAccessor(BaseAccessor):
                         }
                     )
                 )
-            await session.execute(statement)
+                await session.execute(statement)
         self.logger.info(f"updating game_stats: {game_stats}")
 
     async def list_users(self, limit, offset) -> Optional[list[User]]:
