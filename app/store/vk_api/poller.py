@@ -37,9 +37,9 @@ class Poller:
         while self.is_running:
             updates = await self.store.vk_api.poll()
             await self.store.bots_manager.handle_updates(updates)
-            # for u in updates:
-            #     if u.object.peer_id not in self._chat_queues:
-            #         queue = Queue()
-            #         self._chat_queues[u.object.peer_id] = queue
-            #         self._workers.append(asyncio.create_task(self._worker(queue)))
-            #     self._chat_queues[u.object.peer_id].put_nowait(u)
+            for u in updates:
+                if u.object.peer_id not in self._chat_queues:
+                    queue = Queue()
+                    self._chat_queues[u.object.peer_id] = queue
+                    self._workers.append(asyncio.create_task(self._worker(queue)))
+                self._chat_queues[u.object.peer_id].put_nowait(u)
