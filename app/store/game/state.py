@@ -25,7 +25,7 @@ class StateProcessor:
 
     def get_state(self, game: Game, update_type: str) -> int:
         if game:
-            return game.state.value
+            return game.state
         return {
             "message_new": GameState.initial_trigger.value,
             "message_event": GameState.start_trigger.value,
