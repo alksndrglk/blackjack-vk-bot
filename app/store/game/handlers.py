@@ -60,7 +60,10 @@ async def menu_selection_handler(store: Store, game: Game, update: Update):
 async def number_of_players_handler(store: Store, game: Game, update: Update):
     game.players_num = int(update.object.payload.command)
     game.state = GameState.player_accession
-    await store.game.update_game(game)
+    try:
+        await store.game.update_game(game)
+    except Exception as e:
+        print(e)
     await store.vk_api.send_answer(
         update.object, f"Игроков за столом {game.players_num}"
     )
@@ -129,8 +132,10 @@ async def action_selection_handler(store: Store, game: Game, update: Update):
 @StateProcessor.register_handler(GameState.continue_or_leave)
 async def continue_or_leave_handler(store: Store, game: Game, update: Update):
     game.finished_at = datetime.now()
+    try:
+        await store.game.update_game(game)
+    except Exception as e:
+        print(e)
     if update.object.payload == Payload(command="continue"):
         update.object.payload = Payload(command="greeting")
-        await asyncio.gather(
-            start_trigger_handler(store, None, update), store.game.update_game(game)
-        )
+        await start_trigger_handler(store, None, update)

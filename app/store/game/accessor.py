@@ -46,7 +46,7 @@ class BlackJackAccessor(BaseAccessor):
             return UserRegistrationFailed()
         game = GameModel(
             chat_id=peer_id,
-            state=GameState.number_of_players.value,
+            state=GameState.number_of_players.name,
             stats=[GameStatsModel()],
         )
         async with self.app.database.session() as session:
@@ -112,7 +112,7 @@ class BlackJackAccessor(BaseAccessor):
                     .where(GameModel.id == game.id)
                     .values(
                         {
-                            "state": game.state.value,
+                            "state": game.state.name,
                             "current_player": game.current_player,
                             "hand": json.dumps(game.hand),
                             "finished_at": game.finished_at,

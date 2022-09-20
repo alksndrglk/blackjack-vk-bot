@@ -134,17 +134,17 @@ def handle_dealer_hit(game: Game):
 async def handle_check_results(store: Store, game: Game):
     handle_dealer_hit(game)
     [score(game, player) for player in game.players]
+    await inform_players(
+        store.vk_api.send_message, game, "Результаты:", END, show_results=True
+    ),
     game.state = GameState.continue_or_leave
     tasks = [
         store.game.update_game(game),
         store.game.update_game_stats(game.stats),
         *[store.game.update_player(player) for player in game.players],
         *[store.game.update_user(player.user) for player in game.players],
-        inform_players(
-            store.vk_api.send_message, game, "Результаты:", END, show_results=True
-        ),
     ]
-    await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks, return_exceptions=True)
 
 
 def score(game: Game, player: Player):
@@ -167,6 +167,6 @@ def score(game: Game, player: Player):
         game.stats.income += player.bid * 2
     if draw:
         player.status = PlayerStatus.DRAW
-        player.user.amount += player.bid
+        # player.user.amount += player.bid
         game.stats.draw += 1
     player.bid = 10
