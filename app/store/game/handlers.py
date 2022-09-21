@@ -139,6 +139,8 @@ async def action_selection_handler(store: Store, game: Game, update: Update):
 
 @StateProcessor.register_handler(GameState.continue_or_leave)
 async def continue_or_leave_handler(store: Store, game: Game, update: Update):
+    game.finished_at = datetime.now()
+    await store.game.update_game(game)
     if update.object.payload == Payload(command="continue"):
         update.object.payload = Payload(command="greeting")
         await start_trigger_handler(store, None, update)

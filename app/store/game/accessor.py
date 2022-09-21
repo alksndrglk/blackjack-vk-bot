@@ -27,7 +27,7 @@ class BlackJackAccessor(BaseAccessor):
             result = await session.execute(
                 select(GameModel)
                 .where(
-                    and_(GameModel.chat_id == chat_id, or_(GameModel.finished_at == None, Game.state == GameState.continue_or_leave))
+                    and_(GameModel.chat_id == chat_id, GameModel.finished_at == None)
                 )
                 .options(joinedload(GameModel.players).subqueryload(PlayerModel.user))
                 .options(joinedload(GameModel.stats))

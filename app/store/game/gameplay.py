@@ -137,9 +137,8 @@ async def handle_check_results(store: Store, game: Game):
     [score(game, player) for player in game.players]
     await inform_players(
         store.vk_api.send_message, game, "Результаты:", END, show_results=True
-    ),
+    ), 
     game.state = GameState.continue_or_leave
-    game.finished_at = datetime.now()
     tasks = [
         store.game.update_game(game),
         store.game.update_game_stats(game.stats),
