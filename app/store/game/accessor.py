@@ -12,7 +12,7 @@ from app.game.models import (
 )
 from app.player.models import Player, PlayerModel, PlayerStatus
 from app.user.models import User, UserModel
-from sqlalchemy import select, and_, update, delete
+from sqlalchemy import select, and_, update, delete, or_
 from sqlalchemy.orm import joinedload, subqueryload
 from sqlalchemy.dialects.postgresql import insert
 
@@ -27,7 +27,7 @@ class BlackJackAccessor(BaseAccessor):
             result = await session.execute(
                 select(GameModel)
                 .where(
-                    and_(GameModel.chat_id == chat_id, GameModel.finished_at == None)
+                    and_(GameModel.chat_id == chat_id, or_(GameModel.finished_at == None, Game.state == GameState.continue_or_leave))
                 )
                 .options(joinedload(GameModel.players).subqueryload(PlayerModel.user))
                 .options(joinedload(GameModel.stats))
